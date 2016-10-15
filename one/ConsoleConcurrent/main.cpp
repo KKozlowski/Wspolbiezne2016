@@ -31,12 +31,12 @@ HANDLE nmerges_semaphore;
 
 bool want_to_print = true;
 
-void rand_matrix(int size)
+void rand_matrix(int sizeX, int sizeY)
 {
-	for (int i = 0;i < size;i++)
+	for (int i = 0;i < sizeY;i++)
 	{
 		the_matrix.push_back(new vector<double>());
-		for (int k = 0;k < size;k++)
+		for (int k = 0;k < sizeX;k++)
 		{
 			the_matrix[i]->push_back((rand() - RAND_MAX / 2)* 6  * 0.01f);
 		}
@@ -47,19 +47,19 @@ void in_matrix()
 {
 	char method;
 	cin >> method;
-	int size;
-	cin >> size;
+	int sizeX, sizeY;
+	cin >> sizeX >> sizeY;
 	double probe;
 
-	if (size <= 0) return;
+	if (sizeY <= 0 || sizeX <= 0) return;
 
 	if (method == 'r')
-		rand_matrix(size);
+		rand_matrix(sizeX, sizeY);
 	else
-		for (int i = 0;i < size;i++)
+		for (int i = 0;i < sizeY;i++)
 		{
 			the_matrix.push_back(new vector<double>());
-			for (int k = 0;k < size;k++)
+			for (int k = 0;k < sizeX;k++)
 			{
 				cin >> probe;
 				the_matrix[i]->push_back(probe);
@@ -81,30 +81,6 @@ void print_matrix(vector<vector<double> *> &m)
 	}
 	printf("\n");
 }
-
-DWORD WINAPI One(LPVOID)
-{
-	while (1)
-	{
-		WaitForSingleObject(SEMA, INFINITE);
-		Sleep((rand() % 10) * 150 + 100);
-		printf("%s\n", "THREAD ONE");
-		++m;
-	};
-	return 0;
-};
-
-DWORD WINAPI Two(LPVOID)
-{
-	while (1)
-	{
-		Sleep((rand() % 10) * 150 + 400);
-		printf("%s, m equals %d\n", "THREAD TWO", m);
-		ReleaseSemaphore(SEMA, 1, NULL);
-	};
-	return 0;
-};
-
 
 
 DWORD WINAPI SortRow(LPVOID index)
@@ -243,7 +219,7 @@ void finalThings()
 		mediana = finalRow->at((rowSize-1) / 2);
 	}
 
-	printf("MEDIANA: %.2lf", mediana);
+	printf("MEDIAN: %.2lf", mediana);
 }
 
 int main()
@@ -256,14 +232,7 @@ int main()
 		printf("WRONG DATA");
 		return 0;
 	}
-		
-
-	if (the_matrix.size() == 1)
-	{
-		print_matrix(the_matrix);
-		printf("MEDIANA: %.2lf", the_matrix[0]->at(0));
-		return 0;
-	}
+	
 		
 	if (the_matrix.size() > 40)
 	{
