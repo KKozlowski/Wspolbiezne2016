@@ -29,6 +29,8 @@ HANDLE nos_semaphore;
 int ongoing_merges = 0;
 HANDLE nmerges_semaphore;
 
+bool want_to_print = true;
+
 void rand_matrix(int size)
 {
 	for (int i = 0;i < size;i++)
@@ -36,7 +38,7 @@ void rand_matrix(int size)
 		the_matrix.push_back(new vector<double>());
 		for (int k = 0;k < size;k++)
 		{
-			the_matrix[i]->push_back(rand() * 0.01f);
+			the_matrix[i]->push_back((rand() - RAND_MAX / 2)* 6  * 0.01f);
 		}
 	}
 }
@@ -67,6 +69,8 @@ void in_matrix()
 
 void print_matrix(vector<vector<double> *> &m)
 {
+	if (!want_to_print)
+		return;
 	for (int i = 0;i < the_matrix.size(); i++)
 	{
 		for (int k = 0;k < the_matrix[i]->size();k++)
@@ -261,6 +265,13 @@ int main()
 		return 0;
 	}
 		
+	if (the_matrix.size() > 40)
+	{
+		cout << "Do you really want to print the matrix? [Y/N]\n";
+		char yn;
+		cin >> yn;
+		want_to_print = yn == 'Y';
+	}
 
 	matrix_semaphore = CreateSemaphore(NULL, 1, 1, NULL);
 	nos_semaphore = CreateSemaphore(NULL, 1, 1, NULL);
