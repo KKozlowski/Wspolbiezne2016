@@ -49,6 +49,8 @@ void in_matrix()
 	cin >> size;
 	double probe;
 
+	if (size <= 0) return;
+
 	if (method == 'r')
 		rand_matrix(size);
 	else
@@ -245,6 +247,21 @@ int main()
 	srand(time(0));
 	in_matrix();
 
+	if (the_matrix.size() == 0)
+	{
+		printf("WRONG DATA");
+		return 0;
+	}
+		
+
+	if (the_matrix.size() == 1)
+	{
+		print_matrix(the_matrix);
+		printf("MEDIANA: %.2lf", the_matrix[0]->at(0));
+		return 0;
+	}
+		
+
 	matrix_semaphore = CreateSemaphore(NULL, 1, 1, NULL);
 	nos_semaphore = CreateSemaphore(NULL, 1, 1, NULL);
 	nmerges_semaphore = CreateSemaphore(NULL, 1, 1, NULL);
@@ -263,4 +280,6 @@ int main()
 	}
 
 	finalThings();
+
+	return 0;
 }
