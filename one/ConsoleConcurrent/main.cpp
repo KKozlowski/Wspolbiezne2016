@@ -117,20 +117,27 @@ DWORD WINAPI MergeRows(LPVOID)
 				++ongoing_merges;
 			ReleaseSemaphore(nmerges_semaphore, 1, nullptr);
 
+			int m_size = the_matrix.size();
+
 			the_matrix.erase(the_matrix.begin(), the_matrix.begin() + 2);
+	ReleaseSemaphore(matrix_semaphore, 1, nullptr);
 
 			//Start new thread if it will have any use
-			if (the_matrix.size() >= 2)
+			if (m_size - 2 >= 2)
 			{
 				CreateThread(NULL, 0, MergeRows, nullptr, 0, nullptr);
 			}
 
 			success = true;
 		}
-	ReleaseSemaphore(matrix_semaphore, 1, nullptr);
+	
 
 	if (!success)
+	{
+		ReleaseSemaphore(matrix_semaphore, 1, nullptr);
 		return 1;
+	}
+		
 
 	vector<double> * result = new vector<double>();
 
@@ -139,14 +146,16 @@ DWORD WINAPI MergeRows(LPVOID)
 	//Finish
 	WaitForSingleObject(matrix_semaphore, INFINITE);
 		the_matrix.push_back(result);
+		int m_size = the_matrix.size();
 		WaitForSingleObject(nmerges_semaphore, INFINITE);
 			--ongoing_merges;
-			if (the_matrix.size() >= 2)
-			{
-				CreateThread(NULL, 0, MergeRows, nullptr, 0, nullptr);
-			}
 		ReleaseSemaphore(nmerges_semaphore, 1, nullptr);
 	ReleaseSemaphore(matrix_semaphore, 1, nullptr);
+
+	if (m_size >= 2)
+	{
+		CreateThread(NULL, 0, MergeRows, nullptr, 0, nullptr);
+	}
 
 	return 0;
 };
@@ -155,6 +164,7 @@ DWORD WINAPI SortMatrix(LPVOID)
 {
 	print_matrix(the_matrix);
 
+	clock_t tStart = clock();
 	//Sorting lines
 	{
 		WaitForSingleObject(matrix_semaphore, INFINITE);
@@ -173,12 +183,14 @@ DWORD WINAPI SortMatrix(LPVOID)
 
 			if (nos_now == matrix_size)
 			{
+				printf("LINE SORTING TIME: %.5fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 				print_matrix(the_matrix);
 				break;
 			}
 		}
 	}
 
+	
 	//Merging lines
 	{
 		int matrix_size = -111;
@@ -193,6 +205,7 @@ DWORD WINAPI SortMatrix(LPVOID)
 				matrix_size = the_matrix.size();
 				if (merges == 0 && matrix_size == 1)
 				{
+					printf("TOTAL TIME: %.5fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 					print_matrix(the_matrix);
 					break;
 				}
@@ -201,6 +214,7 @@ DWORD WINAPI SortMatrix(LPVOID)
 		}
 		
 	}
+	
 	return 0;
 }
 
@@ -219,7 +233,7 @@ void finalThings()
 		mediana = finalRow->at((rowSize-1) / 2);
 	}
 
-	printf("MEDIAN: %.2lf", mediana);
+	printf("MEDIAN: %.2lf \n", mediana);
 }
 
 int main()
@@ -234,7 +248,7 @@ int main()
 	}
 	
 		
-	if (the_matrix.size() > 40)
+	if (the_matrix.size() * the_matrix[0]->size() > 1000)
 	{
 		cout << "Do you really want to print the matrix? [Y/N]\n";
 		char yn;
@@ -245,6 +259,8 @@ int main()
 	matrix_semaphore = CreateSemaphore(NULL, 1, 1, NULL);
 	nos_semaphore = CreateSemaphore(NULL, 1, 1, NULL);
 	nmerges_semaphore = CreateSemaphore(NULL, 1, 1, NULL);
+
+	
 
 	DWORD ID;
 	main_sorting_thread = CreateThread(NULL, 0, SortMatrix, 0, 0, &ID);
@@ -260,6 +276,8 @@ int main()
 	}
 
 	finalThings();
+
+	
 
 	return 0;
 }
