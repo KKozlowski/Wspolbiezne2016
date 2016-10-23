@@ -11,6 +11,8 @@
 #include <random>
 #include <string>
 
+#define PRINT_TIME TRUE
+
 using namespace std;
 
 Crossing *c;
@@ -25,6 +27,12 @@ enum class lights_type
 };
 
 static const char * LightsStrings[] = { "Queue only", "Time only", "Time and queue" };
+
+HANDLE time_sema;
+double max_time = 0;
+double min_time = 10000;
+double time_sum = 0;
+double time_sum_divider = 0;
 
 double secondsFrom(clock_t tStart)
 {
@@ -61,7 +69,7 @@ DWORD WINAPI city_by_waiting_time(LPVOID b)
 
 	bool releasing_left = 0;
 
-	double minimum_releasing_time = 2;
+	double minimum_releasing_time = 0;
 	double maximum_releasing_time = 5;
 
 	while (true)
@@ -139,6 +147,14 @@ DWORD WINAPI car(LPVOID p)
 		printf("Car nr %d exits the crossing after %.2lf s.\n", id, time);
 		from_left ? c->SignalFromLeft() : c->SignalFromTop();
 
+#if PRINT_TIME
+		WaitForSingleObject(time_sema, INFINITE);
+		if (max_time < time) max_time = time;
+		if (min_time > time) min_time = time;
+		time_sum += time;
+		time_sum_divider += 1;
+		ReleaseSemaphore(time_sema, 1, nullptr);
+#endif
 		//Going around
 		Sleep(2400 + intRand(600, 2000 - id)); // id is only used for making distribution unique, to give different random number sequences.
 		from_left = !from_left;
@@ -149,6 +165,7 @@ DWORD WINAPI car(LPVOID p)
 int main(int argc, char** argv)
 {
 	c = new Crossing();
+	time_sema = CreateSemaphore(NULL, 1, 1, NULL);
 
 	int car_count = 7;
 	lights_type type = lights_type::TimeAndQueue;
@@ -204,9 +221,24 @@ int main(int argc, char** argv)
 		CreateThread(NULL, 0, car, new car_params(i, i%2), 0, nullptr);
 	}
 
+	clock_t t_start = clock();
+
+	bool time_shown = false;
 	while(true)
 	{
-		
+#if PRINT_TIME
+		if (!time_shown && secondsFrom(t_start)>60)
+		{
+			cout << "\n***\n";
+			cout << "MINIMUM TIME: " << min_time << endl;
+			cout << "MAXIMUM TIME: " << max_time << endl;
+			if (time_sum_divider != 0)
+				cout << "AVERAGE TIME: " << time_sum / time_sum_divider << endl;
+			cout << "***\n\n";
+			time_shown = true;
+			return 0;
+		}
+#endif
 	}
 
 	return 0;
