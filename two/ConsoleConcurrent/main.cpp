@@ -70,7 +70,9 @@ DWORD WINAPI city_by_waiting_time(LPVOID b)
 		{
 			if (c->GetNextFromTop() == 0)
 				c->ReleaseFromLeft();
-			if ((secondsFrom(last_left) > minimum_releasing_time && c->GetWaitingCountFromLeft() == 0) 
+			if ((can_switch_from_empty_queue 
+					&& secondsFrom(last_left) > minimum_releasing_time 
+					&& c->GetWaitingCountFromLeft() == 0)
 				|| secondsFrom(last_left) > maximum_releasing_time)
 			{
 				releasing_left = !releasing_left;
@@ -80,7 +82,9 @@ DWORD WINAPI city_by_waiting_time(LPVOID b)
 		{
 			if (c->GetNextFromLeft() == 0)
 				c->ReleaseFromTop();
-			if ((secondsFrom(last_top) > minimum_releasing_time && c->GetWaitingCountFromTop() == 0)
+			if ((can_switch_from_empty_queue 
+					&& secondsFrom(last_top) > minimum_releasing_time 
+					&& c->GetWaitingCountFromTop() == 0)
 				|| secondsFrom(last_top) > maximum_releasing_time)
 			{
 				releasing_left = !releasing_left;
@@ -151,7 +155,6 @@ int main(int argc, char** argv)
 	
 	if (argc > 1)
 	{
-		cout << argv[1] << endl;
 		try
 		{
 			int argumentOfCount = stoi(string(argv[1]));
