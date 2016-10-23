@@ -145,7 +145,7 @@ int main(int argc, char** argv)
 	int car_count = 7;
 	lights_type type = lights_type::TimeAndQueue;
 	
-	if (argc > 0)
+	if (argc > 0){}
 
 
 	switch(type)
