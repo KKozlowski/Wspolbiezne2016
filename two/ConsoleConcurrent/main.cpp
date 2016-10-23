@@ -5,9 +5,11 @@
 #include <iostream>
 #include <algorithm>
 #include <functional>
+#include <sstream>
 #include <iterator>
 #include "Crossing.h"
 #include <random>
+#include <string>
 
 using namespace std;
 
@@ -21,6 +23,8 @@ enum class lights_type
 	TimeOnly,
 	TimeAndQueue
 };
+
+static const char * LightsStrings[] = { "Queue only", "Time only", "Time and queue" };
 
 double secondsFrom(clock_t tStart)
 {
@@ -145,8 +149,37 @@ int main(int argc, char** argv)
 	int car_count = 7;
 	lights_type type = lights_type::TimeAndQueue;
 	
-	if (argc > 0){}
+	if (argc > 1)
+	{
+		cout << argv[1] << endl;
+		try
+		{
+			int argumentOfCount = stoi(string(argv[1]));
+			if (argumentOfCount > 1 && argumentOfCount < 100)
+			{
+				car_count = argumentOfCount;
+			}
+			else
+				printf("Invalid number of cars. Setting default of %d.\n", car_count);
+		} catch (std::invalid_argument i)
+		{
+			printf("Invalid number of cars. Setting default of %d.\n", car_count);
+		}
+	}
 
+	printf("Number of cars: %d.\n", car_count);
+
+	if (argc > 2)
+	{
+		if (argv[2][0] == 'q')
+			type = lights_type::QueueOnly;
+		else if (argv[2][0] == 't')
+			type = lights_type::TimeOnly;
+		else if (argv[2][0] == 'b')
+			type = lights_type::TimeAndQueue;
+	}
+
+	printf("Contol type: %s.\n", LightsStrings[(int)type]);
 
 	switch(type)
 	{
