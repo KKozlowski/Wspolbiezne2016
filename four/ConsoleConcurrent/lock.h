@@ -7,14 +7,14 @@ private:
 	std::set<int> slocked;
 	int xlocked;
 
-	HANDLE semaS;
-	HANDLE semaX;
+	HANDLE sema_shared;
+	HANDLE sema_exclusive;
 public:
 	lock();
 
-	bool slock(int id);
-	bool sunlock(int id);
+	bool shared_lock(int id);
+	bool shared_unlock(int id);
 
-	bool xlock(int id);
-	bool xunlock(int id);
+	bool exclusive_lock(int id);
+	bool exclusive_unlock(int id);
 };

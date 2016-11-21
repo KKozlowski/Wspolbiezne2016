@@ -3,68 +3,68 @@
 lock::lock()
 {
 	xlocked = -1;
-	semaS = CreateSemaphore(nullptr, 1, 1, nullptr);
-	semaX = CreateSemaphore(nullptr, 1, 1, nullptr);
+	sema_shared = CreateSemaphore(nullptr, 1, 1, nullptr);
+	sema_exclusive = CreateSemaphore(nullptr, 1, 1, nullptr);
 }
 
-bool lock::slock(int id)
+bool lock::shared_lock(int id)
 {
-	WaitForSingleObject(semaX, INFINITE);
+	WaitForSingleObject(sema_exclusive, INFINITE);
 		bool notX = xlocked == -1;
-	ReleaseSemaphore(semaX, 1, nullptr);
+	ReleaseSemaphore(sema_exclusive, 1, nullptr);
 
-	WaitForSingleObject(semaS, INFINITE);
+	WaitForSingleObject(sema_shared, INFINITE);
 		if (notX && slocked.find(id) == slocked.end())
 		{
 			slocked.insert(id);
 		}
-	ReleaseSemaphore(semaS, 1, nullptr);
+	ReleaseSemaphore(sema_shared, 1, nullptr);
 	return notX;
 }
 
-bool lock::sunlock(int id)
+bool lock::shared_unlock(int id)
 {
 	bool result = false;
 
-	WaitForSingleObject(semaS, INFINITE);
+	WaitForSingleObject(sema_shared, INFINITE);
 		if (slocked.find(id) != slocked.end())
 		{
 			slocked.erase(id);
 			result = true;
 		}
-	ReleaseSemaphore(semaS, 1, nullptr);
+	ReleaseSemaphore(sema_shared, 1, nullptr);
 
 	return result;
 }
 
-bool lock::xlock(int id)
+bool lock::exclusive_lock(int id)
 {
 	int scount = 0;
-	WaitForSingleObject(semaS, INFINITE);
+	WaitForSingleObject(sema_shared, INFINITE);
 		scount = slocked.size();
-	ReleaseSemaphore(semaS, 1, nullptr);
+	ReleaseSemaphore(sema_shared, 1, nullptr);
 
 	bool result = false;
 
-	WaitForSingleObject(semaX, INFINITE);
+	WaitForSingleObject(sema_exclusive, INFINITE);
 		if (scount == 0 && xlocked == -1)
 		{
 			xlocked = id;
 			result = true;
 		}
-	ReleaseSemaphore(semaX, 1, nullptr);
+	ReleaseSemaphore(sema_exclusive, 1, nullptr);
 	return result;
 }
 
-bool lock::xunlock(int id)
+bool lock::exclusive_unlock(int id)
 {
 	bool result = false;
-	WaitForSingleObject(semaX, INFINITE);
+	WaitForSingleObject(sema_exclusive, INFINITE);
 		if (xlocked == id)
 		{
 			xlocked = -1;
 			result = true;
 		}
-	ReleaseSemaphore(semaX, 1, nullptr);
+	ReleaseSemaphore(sema_exclusive, 1, nullptr);
 	return result;
 }
